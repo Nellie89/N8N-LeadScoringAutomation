@@ -1,0 +1,801 @@
+{
+  "name": "Leads",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "receive-leads-exam",
+        "options": {}
+      },
+      "id": "15a3dd69-e004-4c36-a86b-39be3ce4ac7c",
+      "name": "Receive Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1520,
+        -340
+      ],
+      "webhookId": "3d2cea75-d64a-464d-bbf4-0d9e67fa6fa7"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract from body\nconst full_name = $json.body.full_name;\nconst email = $json.body.email;\nconst budget = parseFloat($json.body.budget);\nconst interest = $json.body.interest_level?.toLowerCase();\n\n// Validation\nif (!full_name || !email || isNaN(budget) || !interest) {\n  throw new Error(`Missing or invalid data. \n  full_name: ${full_name}, \n  email: ${email}, \n  budget: ${budget}, \n  interest: ${interest}`);\n}\n\n// Scoring Logic\nlet score = 'Cold';\n\nif (budget >= 5000 && interest === 'high') {\n  score = 'Hot';\n} else if (budget >= 3000 && interest === 'medium') {\n  score = 'Warm';\n}\n\n// Output\nreturn [\n  {\n    json: {\n      full_name,\n      email,\n      budget,\n      interest_level: interest,\n      lead_score: score,\n    },\n  },\n];\n"
+      },
+      "id": "e52e12cf-445f-42d3-831a-4f17c0f70572",
+      "name": "Set Lead Score",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -1300,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "b3caa2a2-5fde-45a1-aff6-6d9f6f3cb5dc",
+      "name": "Delay Follow-Up",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1716,
+        -340
+      ],
+      "webhookId": "814324f1-fad3-457c-9817-628b203d65d4"
+    },
+    {
+      "parameters": {
+        "fromEmail": "=banelemlalazi@gmail.com",
+        "toEmail": "={{ $items(\"Set Lead Score\")[0].json[\"email\"] }}\n",
+        "subject": "=Follow-Up Meeting Booked — Let’s Talk Soon",
+        "text": "=Hi {{ $items('Create a record')[0].json['name'] || \"there\" }},\n\nThanks again for reaching out — I’ve booked a follow-up chat for us.\n\n📅 It’s already in your calendar, but feel free to suggest another time if that doesn’t work for you.\n\nLooking forward to connecting.\n\nWarm regards,  \nBanele  \nAutomation Specialist",
+        "options": {}
+      },
+      "id": "51af89a3-bdad-412b-9d5a-d5a3408c136b",
+      "name": "Send Follow-Up Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        -340
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "f0OqzP4N7nmDPzZZ",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appDyISeYJlWkjOe2",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appDyISeYJlWkjOe2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl4WdfTONuYug5M2",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appDyISeYJlWkjOe2/tbl4WdfTONuYug5M2"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "full_name": "={{ $items(\"Set Lead Score\")[0].json[\"full_name\"] }}",
+            "email": "={{ $items(\"Set Lead Score\")[0].json[\"full_name\"] }}",
+            "budget": "=\t{{ $items(\"Set Lead Score\")[0].json[\"budget\"] }}",
+            "interest_level": "={{ $items(\"Set Lead Score\")[0].json[\"interest_level\"] }}",
+            "lead_score": "=\t{{ $items(\"Set Lead Score\")[0].json[\"lead_score\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interest_level",
+              "displayName": "interest_level",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_score",
+              "displayName": "lead_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -200,
+        -340
+      ],
+      "id": "2bd7b10a-52b2-446b-b85a-c72259ba9a0b",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "1HtcVQvcEAjSi05z",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/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",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🔥 *New Hot Lead!*\\nName: {{ $items('Set Lead Score')[0].json['full_name'] }}\\nEmail: {{ $items('Set Lead Score')[0].json['email'] }}\\nLead Score: {{ $items('Set Lead Score')[0].json['lead_score'] }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1496,
+        -340
+      ],
+      "id": "21878b3a-2263-4494-a27a-6d051a4ab16c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appDyISeYJlWkjOe2",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appDyISeYJlWkjOe2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl4WdfTONuYug5M2",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appDyISeYJlWkjOe2/tbl4WdfTONuYug5M2"
+        },
+        "filterByFormula": "=\tAND({email} = \"{{ $json[\"email\"] }}\")",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1080,
+        -340
+      ],
+      "id": "959c4eb1-3126-4d34-92ed-42758c55a7fa",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "1HtcVQvcEAjSi05z",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aca0fc9e-f9db-4f88-a58f-9b6d27ae9781",
+              "leftValue": "={{ $items(\"Search records\").length }}\n",
+              "rightValue": "0",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -860,
+        -340
+      ],
+      "id": "c662229d-9862-4b5e-9059-56a62b2d8c59",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1KgsZjsE6wCYYP-m_QIOhlDfTmXVoAr4PlKOYvT8yd9o",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KgsZjsE6wCYYP-m_QIOhlDfTmXVoAr4PlKOYvT8yd9o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1146240444,
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KgsZjsE6wCYYP-m_QIOhlDfTmXVoAr4PlKOYvT8yd9o/edit#gid=1146240444"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "full_name": "={{ $items(\"Set Lead Score\")[0].json[\"full_name\"] }}",
+            "email": "={{ $items(\"Set Lead Score\")[0].json[\"full_name\"] }}",
+            "budget": "={{ $items(\"Set Lead Score\")[0].json[\"budget\"] }}",
+            "interest_level": "={{ $items(\"Set Lead Score\")[0].json[\"interest_level\"] }}",
+            "lead_score": "={{ $items(\"Set Lead Score\")[0].json[\"lead_score\"] }}",
+            "date_created": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "interest_level",
+              "displayName": "interest_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_score",
+              "displayName": "lead_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date_created",
+              "displayName": "date_created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        20,
+        -340
+      ],
+      "id": "ffd0c871-4335-4bcb-935b-c0ffbb8e8c9e",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "fbtptwD3ZhvA55Zu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e6fb373b-15ae-4376-aca8-e4fda2be336d",
+              "leftValue": "={{ $items(\"Set Lead Score\")[$itemIndex].json[\"lead_score\"].trim().toLowerCase() }}",
+              "rightValue": "=hot",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        -340
+      ],
+      "id": "55fce7da-8e5a-4ae0-b60a-0c3a57fd3747",
+      "name": "If Hot Lead"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        -340
+      ],
+      "id": "0bd4637d-e85a-4ee0-a23e-0843d3927545",
+      "name": "Wait",
+      "webhookId": "d19986e4-0a32-441c-a049-3b1e8f45248b"
+    },
+    {
+      "parameters": {
+        "jsCode": "const agents = [\"Tariq\", \"Maya\", \"Jules\", \"Kendra\"];\n\nreturn items.map(item => {\n  return {\n    json: {\n      ...item.json,\n      assigned_agent: agents[Math.floor(Math.random() * agents.length)],\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        -340
+      ],
+      "id": "c91d1e01-a8d1-493c-af12-c7c27b24e536",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Hello, I'm ready for my task.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        680,
+        -340
+      ],
+      "id": "df39aeda-d624-469d-b2f3-200cbfef8645",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=test-session-001\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        828,
+        -120
+      ],
+      "id": "c333ed61-623d-4d07-8103-6394cf15d43c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        708,
+        -120
+      ],
+      "id": "23cc7aed-1299-4b02-bc0f-94d733f5fe54",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Arvezuu47S4nqf38",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appDyISeYJlWkjOe2",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appDyISeYJlWkjOe2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl4WdfTONuYug5M2",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appDyISeYJlWkjOe2/tbl4WdfTONuYug5M2"
+        },
+        "filterByFormula": "={email} = \"{{ $json[\"email\"] }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -640,
+        -340
+      ],
+      "id": "8b9a00bd-c342-4720-8caa-6c329b8a1856",
+      "name": "Search records1",
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "hKpvAWYjNicfIFKg",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const agent = $json[\"assigned_agent\"] || \"Default\";\n\nconst slackWebhookMap = {\n  \"Tariq\": \"https://hooks.slack.com/services/XXXX/YYYY/TARIQ-SECRET\",\n  \"Sarah\": \"https://hooks.slack.com/services/XXXX/YYYY/SARAH-SECRET\",\n  \"Default\": \"https://hooks.slack.com/services/XXXX/YYYY/DEFAULT-SECRET\"\n};\n\nreturn [\n  {\n    json: {\n      webhook_url: slackWebhookMap[agent] || slackWebhookMap[\"Default\"],\n      message: `🔥 New Hot Lead: ${$json.full_name} | Budget £${$json.budget} | Interest: ${$json.interest_level}`\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1276,
+        -340
+      ],
+      "id": "cf0a77b1-e004-4b93-8f25-3226ec79ae5d",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const searchResults = $items(\"Search records1\")[0]?.json?.records;\n\nif (!searchResults || !Array.isArray(searchResults)) {\n  // No records found — allow this lead through\n  return [{ json: $(\"Set Lead Score\").item.json }];\n}\n\nconst existingEmails = searchResults.map(item => item.fields.email?.toLowerCase());\nconst currentEmail = $(\"Set Lead Score\").item.json.email?.toLowerCase();\n\nif (!existingEmails.includes(currentEmail)) {\n  return [{ json: $(\"Set Lead Score\").item.json }];\n}\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        -340
+      ],
+      "id": "e4e7742f-0f4a-4603-99dd-45f31eeb4faa",
+      "name": "Code Node"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "banelemlalazi@gmail.com",
+          "mode": "list",
+          "cachedResultName": "banelemlalazi@gmail.com"
+        },
+        "start": "={{ $items(\"Code2\")[0].json[\"now_plus_1_day\"] }}",
+        "end": "={{ $items(\"Code2\")[0].json[\"now_plus_1_day_1hr\"] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        2156,
+        -340
+      ],
+      "id": "7b137dbd-82c7-4fb9-8c61-0831f37d31a7",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "pjdxhIXeoZD2Ibq8",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      now_plus_1_day: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),\n      now_plus_1_day_1hr: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString()\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1936,
+        -340
+      ],
+      "id": "8e00ff62-f1a3-4299-a4ad-063d6655bf06",
+      "name": "Code2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receive Lead": {
+      "main": [
+        [
+          {
+            "node": "Set Lead Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Lead Score": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delay Follow-Up": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Delay Follow-Up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Search records1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If Hot Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Hot Lead": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records1": {
+      "main": [
+        [
+          {
+            "node": "Code Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Node": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-Up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0fb51e64-1950-4cbe-8d4e-041313d38749",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbd4c0b168721824857fed0ee92108b66e1c5baddc55bb45599b608877c72fa5"
+  },
+  "id": "Lqz6hmkMhudnx8zn",
+  "tags": []
+}
